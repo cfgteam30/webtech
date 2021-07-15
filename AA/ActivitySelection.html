@@ -1,0 +1,107 @@
+<style>
+body {
+    font-family: "Lato", sans-serif;
+}
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidenav a:hover {
+    color: #f1f1f1;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+@media screen and (max-height: 450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+}
+    </style>
+<div id="mySidenav" class="sidenav" style="width: 250px;">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+  <a href="Count.html">Count Sort</a>
+  <a href="ActivitySelection.html">Activity Selection</a>
+  <a href="Radix.html">Radix Sort</a>
+  <a href="LCS.html">LCS</a>
+  <a href="Matrix.html">Matrix Chain Multiplication</a>
+</div>
+<pre >
+    Start Time:<input onkeypress="startKeys(event)" style="margin: 10pt" id="start" size="100" autofocus value="1 4 8"/>
+    Finish Time:<input onkeypress="finishKeys(event)" style="margin: 10pt" id="finish" size="100" value="3 7 9"/>
+    <button onclick="myclick()">GO</button>
+    <pre id="calculations">
+
+    </pre>
+</pre>
+<script>
+    var startInput=document.querySelector("#start");
+    var finishInput=document.querySelector("#finish");
+    var calc=document.querySelector("#calculations");
+    function startKeys(event){
+        if(event.key=="Enter")
+            finishInput.focus();
+    }
+    function finishKeys(event){
+        if(event.key=="Enter")
+            myclick();
+    }
+    function myclick(){
+        var start=startInput.value.split(' ').map(num => parseInt(num));
+        var finish=finishInput.value.split(' ').map(num => parseInt(num));
+        calc.innerHTML="";
+        if(start.length!=finish.length){
+            calc.innerHTML+="<H1>Unequal size!</H1>";
+            return;
+        }
+        start.unshift(0);
+        finish.unshift(0);
+        calc.innerHTML+="n="+(start.length-1);
+        var arr=RAS(start,finish,0,start.length-1);
+        console.log(arr)
+        calc.innerHTML+="\nSolution=[ ";
+        for(var val of arr)
+            calc.innerHTML+=`( ${val[0]}, ${val[1]}), `;
+        calc.innerHTML+="]"
+    }
+    function RAS(s,f,k,n){
+        calc.innerHTML+=`\nRSA([${s}],[${f}],${k},${n})`;
+        var m=k+1;
+        calc.innerHTML+="\n\tm="+m+", k="+k;
+        while(m<=n && s[m]<f[k]){
+            m=m+1;
+            calc.innerHTML+="\n\t"+s[m]+"<"+f[k]+" , m="+m;
+        }
+        if(m<=n){
+            var res=RAS(s,f,m,n);
+            res.push([s[m],f[m]]);
+            return res;
+        }
+        else
+            return [];
+    }
+</script>

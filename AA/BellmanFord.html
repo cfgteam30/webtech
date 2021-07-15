@@ -1,0 +1,152 @@
+<style>
+    table {
+
+        border-radius: 5px;
+    }
+    td,
+    th {
+        text-align: center;
+        border-spacing: 0;
+    }
+</style>
+<script>
+    function getTable(G) {
+
+        var table = document.createElement("table");
+        table.border = "border";
+        table.style="width: 20;height: 10;";
+        var thead = table.createTHead();
+        var row = thead.insertRow();
+        var cell = row.insertCell();
+        for (var n of G.nodes) {
+            cell = row.insertCell();
+            cell.innerHTML = "<b>"+n+"</b>";
+        }
+
+        var tbody = table.createTBody();
+        row = tbody.insertRow();
+        cell = row.insertCell();
+        cell.innerHTML = "<b>"+"d"+"</b>";
+        for (var n of G.nodes) {
+            cell = row.insertCell();
+            if (G.dist.get(n) == Infinity)
+                cell.innerHTML = "&infin;";
+            else
+                cell.innerHTML = G.dist.get(n);
+        }
+
+        row = tbody.insertRow();
+        cell = row.insertCell();
+        cell.innerHTML = "<b>"+"&pi;"+"</b>";
+        for (var n of G.nodes) {
+            cell = row.insertCell();
+            if (G.pi.get(n) == null)
+                cell.innerText = "-";
+            else
+                cell.innerText = G.pi.get(n);
+        }
+
+        return table;
+    }
+    function getInput() {
+        var edges = [];
+        document.getElementById("graphInput").value.split("\n").forEach(line => {
+            var temp = line.match(/-?\w+/g);
+            if (temp.length == 3)
+                edges.push([temp[0], temp[1], parseInt(temp[2])]);
+
+        });
+        edges.sort();
+        var nodes = new Set();
+        document.getElementById("div1").innerText = "Edges: ";
+        for (var line of edges) {
+            document.getElementById("div1").innerText += "<" + line[0] + "," + line[1] + ">, ";
+            nodes.add(line[0]).add(line[1]);
+        };
+        var G = {
+            edges: edges,
+            nodes: nodes,
+            source: document.getElementById("source").value,
+            dist: new Map(),
+            pi: new Map()
+        };
+        return G;
+    }
+    function intialize(G) {
+        for (var n of G.nodes) {
+            G.dist.set(n, Infinity);
+            G.pi.set(n, null);
+        }
+        G.dist.set(G.source, 0);
+        console.log(G.dist.get(G.source));
+    }
+    function relax(e, G) {
+        if (G.dist.get(e[0]) + e[2] < G.dist.get(e[1])) {
+            G.dist.set(e[1], G.dist.get(e[0]) + e[2]);
+            G.pi.set(e[1], e[0]);
+            return true
+        }
+        return false
+    }
+
+
+
+    function start() {
+
+        var G = getInput();
+        intialize(G);
+        console.log(G);
+        var table=document.getElementById("fullTable");
+        table.border = "border";
+        var thead = table.createTHead();
+        var row = thead.insertRow();
+        var cell = row.insertCell();
+        cell.innerHTML = "<b>"+"i"+"</b>";
+        for (var line of G.edges) {
+            cell = row.insertCell();
+            cell.innerHTML = "<b>"+"("+line[0]+","+line[1]+")" +"</b>";
+        }        
+        
+        var tbody = table.createTBody();
+
+        //bellmanford
+        for (var i = 0; i < G.nodes.size - 1; i++) {
+            row = tbody.insertRow();
+            cell = row.insertCell();
+            cell.innerText =i;
+            for (var edge of G.edges) {
+                relax(edge, G);
+                cell = row.insertCell();
+                cell.appendChild(getTable(G));
+                // document.getElementById("div3").innerText+="<h3>"+"<"+edge[0]+","+edge[1]+">"+"</h3>"
+            }
+        }
+        for (var edge of G.edges)
+            if (relax(edge, G))
+                failure();
+
+    }
+
+</script>
+Graph:<br>
+<textarea id="graphInput" cols="10" rows="15">s t 6
+s y 7
+t y 8
+t z -4
+t x 5
+x t -2
+z x 7
+z s 2
+y x -3
+y z 9</textarea>
+<br><br>
+Source: <input size="5" id="source" value="s">
+<br><br>
+<button onclick="start()">start</button>
+<div>
+    <pre id="div1"></pre>
+</div>
+<div>
+    <pre id="div2"></pre>
+</div>
+<table id="fullTable"></table>

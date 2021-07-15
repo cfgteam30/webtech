@@ -1,0 +1,96 @@
+<button onclick="addRow()">addRow</button>
+<button onclick="addCol()">addCol</button>
+<button onclick="rmCol()">rmCol</button>
+<button onclick="rmRow()">rmRow</button>
+<button onclick="calculate()">calc</button><br/>
+<table border id="table" style="margin: 0.5cm; " align="left" oninput="tableInput()">
+    <tr>
+        <td></td>
+        <td>
+            <label contenteditable="true" >attr1</label>
+            <input type="checkbox" />
+        </td>
+        <td>
+            <label contenteditable="true" >attr2</label>
+            <input type="checkbox" />
+        </td>
+    </tr>
+</table>
+<script>
+    var table = document.getElementById("table");
+        var textArea = document.getElementById("textArea");
+        var calculation = document.getElementById("calc");
+        var attrs = [];
+        var tar = [];
+        var attrNames = ["attr1","attr2"] ;
+        var attrNumeric = [];
+        function addRow() {
+            var row = table.insertRow();
+            var cell = row.insertCell();
+            cell.innerText = table.rows.length - 1
+            var attr=[];
+            for (var i = 0; i < table.rows[0].cells.length - 1; i++) {
+                cell = row.insertCell();
+                cell.contentEditable=true;
+                attr.push("");
+            }
+            attrs.push(attr);
+        }
+        function addCol() {
+            var cell = table.rows[0].insertCell();
+            var label = document.createElement("label");
+            label.contentEditable=true;
+            label.innerText = "attr" + (table.rows[0].cells.length - 1);
+            cell.appendChild(label);
+            var input = document.createElement("input");
+            input.type = "checkbox";
+            cell.appendChild(input);
+            for (var i = 1; i < table.rows.length; i++) {
+                cell = table.rows[i].insertCell();
+                cell.contentEditable=true;
+            }
+        }
+        function rmCol() {
+            for (var i = 0; i < table.rows.length; i++) {
+                cell = table.rows[i].deleteCell(-1)
+            }
+        }
+        function rmRow() {
+            table.deleteRow(-1);
+        }
+        function text(str) {
+            var pre = document.createElement("pre");
+            pre.innerHTML = str;
+            return pre;
+        }
+        function getAttrs() {
+            attrNames = [];
+            attrNumeric = [];
+            for (var i = 1; i < table.rows[0].cells.length - 1; i++) {
+                attrNames.push(table.rows[0].cells[i].children.item(0).innerText);
+                attrNumeric.push(table.rows[0].cells[i].children.item(1).checked);
+            }
+            attrs = [];
+            for (var i = 1; i < table.rows[0].cells.length - 1; i++) {
+                var s = [];
+                for (var j = 1; j < table.rows.length; j++) {
+                    var str = table.rows[j].cells[i].innerText;
+                    if (str.match(/\d+/))
+                        str = parseInt(str);
+                    else if (str.match(/\d+.\d+/))
+                        str = parseFloat(str);
+                    s.push(str);
+                }
+                attrs.push(s);
+            }
+            tar = [];
+            for (var i = 1; i < table.rows.length; i++) {
+                var str = table.rows[i].cells[table.rows[0].cells.length - 1].innerText;
+                if (str.match(/\d+/))
+                    str = parseInt(str);
+                else if (str.match(/\d+.\d+/))
+                    str = parseFloat(str);
+                tar.push(str);
+            }
+        }
+</script>

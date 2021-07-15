@@ -1,0 +1,88 @@
+<html>
+<head>
+<style>
+p {
+    text-align: center;
+    position: absolute;
+    align-self:center;
+    width: 800;
+    left: 25%;
+    top: 25%;
+    background-color:rgba(66, 66, 66, 0.3);
+  
+}
+img{
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    left: 35%;
+    top: 30%;
+    z-index: -1;
+}
+body{
+    align-items: center;
+}
+</style>
+</head>
+<body >
+
+<p>
+    <img src="flower.jpg"/>
+    browser, Internet Explorer (IE). The release of IE in 1995 marked the beginning 
+    of a four-year marketing competition between Netscape and Microsoft. During 
+    this time, both companies worked feverously to develop their own extensions to 
+    HTML in an attempt to gain market advantage. Naturally, this competition led 
+    to incompatible versions of HTML, both between the two developers and also 
+    between older and newer releases from the same company. These differences 
+    made it a serious challenge to Web content providers to design single HTML 
+    documents that could be viewed by the different browsers.
+    In late 1994, Tim Berners-Lee, who developed the initial version of HTML, 
+    started the World Wide Web Consortium (W3C), whose primary purpose was 
+    to develop and distribute standards for Web technologies, starting with HTML. 
+    The first HTML standard, HTML 2.0, was released in late 1995. It was followed by HTML 3.2 in early 1997. Up to that point, W3C was trying to catch 
+    up with the browser makers, and HTML 3.2 was really just a reflection of the 
+    then-current features that had been developed by Netscape and Microsoft. Fortunately, since 1998 the evolution of HTML has been dominated by W3C, in part 
+    because Netscape gradually withdrew from its browser competition with Microsoft. There are now several different organizations that produce and distribute 
+    browsers, all of which except Microsoft, at least until recently, followed relatively 
+    closely the HTML standards produced by W3C. The HTML 4.0 specification 
+    was published in late 1997. The 4.01 version of HTML, which
+
+
+    Write an XHTML document that must contain the statement “Java is an object oriented language”, which continuously moves back and forth across the top of the display. 
+
+    Develop an XHTML document that has textboxes for apple (30 Rs each),orange(15 Rs each), banana(5 Rs each), along with a submit button. These textboxes should take a number, which is the purchased number of the particular fruit. Each of the textboxes should have its own event handler when the value is changed. An event handler for the submit button must produce an alert window with the message “Your total cost is Rsxxx”, where xxx is the total cost of the chosen fruit, 5% sales tax. This handler 
+    must return false (to avoid actual submission of the form data). 
+    
+    ii)Add reality checks to the textboxes of the above mentioned document(Refer i).The checks on the textbox inputs should ensure that the input values are numbers in the range of 0-60
+
+</p>
+    NW<input id="NW" type="radio" name="grp1" onclick="myclick(event)"/><br>
+    NE<input id="NE"  type="radio" name="grp1" onclick="myclick(event)"/><br>
+    SW<input id="SW"  type="radio" name="grp1" onclick="myclick(event)"/><br>
+    SE<input id="SE"  type="radio" name="grp1" onclick="myclick(event)"/><br>
+    <script>
+        console.log("832$2".match(/2$2/g))
+        var p=document.querySelector("p");
+        var pstyle=window.getComputedStyle(p);
+        var img=document.querySelector("img");
+        img.style.bottom=0;
+        img.style.right=0;
+        function myclick(event){
+            if(event.target.id=="NW"){
+                img.style.top=0;
+                img.style.left=0;
+            }else if(event.target.id=="NE"){
+                img.style.top=0;
+                img.style.right=0;
+            }else if(event.target.id=="SW"){
+                img.style.bottom=0;
+                img.style.left=0;
+            }else if(event.target.id=="SE"){
+                img.style.bottom=0;
+                img.style.right=0;
+            }
+            console.log([img.style.top,img.style.left,img.style.right,img.style.bottom].join(","));
+        }
+    </script>
+</body>
+</html>

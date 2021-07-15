@@ -1,0 +1,182 @@
+<style>
+    table { border-collapse: collapse; }
+    td, th { border: 1px solid; padding: 5px; margin: 0.25px; text-align: center;}
+body {
+    font-family: "Lato", sans-serif;
+}
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidenav a:hover {
+    color: #f1f1f1;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+@media screen and (max-height: 450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+}
+    </style>
+<div id="mySidenav" class="sidenav" style="width: 250px;">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <a href="Count.html">Count Sort</a>
+    <a href="ActivitySelection.html">Activity Selection</a>
+    <a href="Radix.html">Radix Sort</a>
+    <a href="LCS.html">LCS</a>
+    <a href="Matrix.html">Matrix Chain Multiplication</a>
+</div>
+<pre >
+    X:<input onkeypress="startKeys(event)" style="margin: 10pt" id="X" size="100" autofocus value="GXTXAXB"/>
+    Y:<input onkeypress="finishKeys(event)" style="margin: 10pt" id="Y" size="100" value="AGGTAB"/>
+    <button onclick="myclick()">GO</button>
+    <pre id="calculations"> </pre>
+    
+</pre>
+<script>
+    function startKeys(event){
+        if(event.key=="Enter")
+            finishInput.focus();
+    }
+    function finishKeys(event){
+        if(event.key=="Enter")
+            myclick();
+    }
+    function myclick(){
+        var Xinput=document.querySelector("#X");
+        var Yinput=document.querySelector("#Y");
+        var X=Xinput.value.trim();
+        var Y=Yinput.value.trim();
+        LCS(X,Y);
+    }
+    function LCS(X,Y){
+        var m=X.length;
+        var n=Y.length;
+        var c=[],b=[];
+        for(var i=0;i<=m;i++){
+            var tmp=new Array(n+1);
+            tmp.fill(0);
+            c.push(tmp);
+            tmp=new Array(n+1);
+            tmp.fill("");
+            b.push(tmp);
+        }
+        console.log("first",c);
+        for(var i=1;i<=m;i++)
+            for(var j=1;j<=n;j++)
+                if(X[i-1]==Y[j-1]){
+                    c[i][j] = 1 + c[i-1][j-1];
+                    b[i][j] = "&nwarr;"
+                }else
+                    if(c[i-1][j]>=c[i][j-1]){
+                        c[i][j] = c[i-1][j];
+                        b[i][j] = "&uparrow;"
+                    }else {
+                        c[i][j] = c[i][j-1];
+                        b[i][j] = "&leftarrow;"
+                    }
+        PrintLCS(c,b,X,Y,m,n);
+        
+    }
+    function PrintLCS(c,b,X,Y,m,n) {
+        
+        var calc=document.querySelector("#calculations");
+        var table = document.createElement('table');
+        var tableBody = document.createElement('tbody');
+
+        var row = document.createElement('tr');
+        var cell = document.createElement('td');
+        cell.style.border="none";
+        row.appendChild(cell);
+        var i=0;
+        cell = document.createElement('td');
+        cell.appendChild(document.createTextNode(i++));
+        cell.style.border="none";
+        row.appendChild(cell);
+        for(var ch of Y){
+            cell = document.createElement('td');
+            cell.innerHTML=(i++) + '<br>' + ch;
+            cell.style.border="none";
+            row.appendChild(cell);
+        }
+        tableBody.appendChild(row);
+
+        row = document.createElement('tr');
+        cell = document.createElement('td');
+        cell.appendChild(document.createTextNode(0));
+        cell.style.border="none";
+        row.appendChild(cell);
+        for(i=0;i<=n;i++){
+            cell = document.createElement('td');
+            cell.appendChild(document.createTextNode(0));
+            row.appendChild(cell);
+        }
+        tableBody.appendChild(row);
+
+        for(i=1;i<=m;i++){
+            row = document.createElement('tr');
+            cell = document.createElement('td');
+            cell.appendChild(document.createTextNode(i+'\t'+X[i-1]));
+            cell.style.border="none";
+            row.appendChild(cell);
+            for(var j=0;j<=n;j++){
+                cell = document.createElement('td');
+                cell.innerHTML= b[i][j]+c[i][j];
+                row.appendChild(cell);
+            }
+            tableBody.appendChild(row);
+        }
+        
+        
+        i=m;
+        var j=n;
+        while(true){
+            if(b[i][j]=="")
+                break;
+            if(b[i][j]=="&nwarr;"){
+                tableBody.childNodes[i+1].childNodes[j+1].style.backgroundColor = "#f5bc42";
+                i--;j--;
+            }else if(b[i][j]=="&uparrow;"){
+                tableBody.childNodes[i+1].childNodes[j+1].style.backgroundColor = "#f5e342";
+                i--;
+            }else if(b[i][j]=="&leftarrow;"){
+                tableBody.childNodes[i+1].childNodes[j+1].style.backgroundColor = "#f5e342";
+                j--;
+            }else{
+                console.log("unknown",b[i][j]);
+                break;
+            }
+        }
+        
+
+        table.appendChild(tableBody);
+        calc.innerHTML="";
+        calc.appendChild(table);
+    }
+</script>

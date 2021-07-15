@@ -1,0 +1,13 @@
+
+<h1 style="position: absolute;" id="label">Java is an object oriented language</h1>
+<script>
+    var l=document.querySelector("#label");
+    var front=true;
+    function func1(){
+        l.style.left=front?"50%":"10%";
+        front=!front;
+        t=setTimeout(func1,1000);
+    }
+    var t=setTimeout(func1,1000);
+</script>
+

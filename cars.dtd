@@ -1,0 +1,24 @@
+<!DOCTYPE cars_catalog>
+[
+    <!ELEMENT cars_catalog(car+)
+    <!ELEMENT car (make,model,year,color,engine,number_of_doors,transmission_type,accessories)
+    <!ELEMENT make (#PCDATA)>
+    <!ELEMENT model (#PCDATA)>
+    <!ELEMENT year (#PCDATA)>
+    <!ELEMENT color (#PCDATA)>
+    <!ELEMENT engine (number_of_cylinders,fuel_system)>
+    <!ELEMENT number_of_doors (#PCDATA)>
+    <!ELEMENT fuel_system (#PCDATA)>
+    <!ELEMENT transmission_type (#PCDATA)>
+    <!ELEMENT number_of_cylinders (#PCDATA)>
+    <!ELEMENT accessories (#PCDATA)>
+    <!ENTITY f "Ford">
+    <!ENTITY h "Honda">
+    <!ENTITY t "Toyota">
+    <!ATTLIST accessories 
+    radio (true|false) #REQUIRED>
+    <!ATTLIST accessories air_conditioning CDATA #REQUIRED>
+    <!ATTLIST accessories power_windows CDATA #REQUIRED>
+    <!ATTLIST accessories power_steering CDATA #REQUIRED>
+    <!ATTLIST accessories power_brakes CDATA #REQUIRED>
+]

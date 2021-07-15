@@ -1,0 +1,14 @@
+GET
+List the associations of a LDAP Server
+POST
+Manage the associations of a LDAP Server
+GET
+List the Users bound to a LDAP Server
+GET
+List the User Groups bound to a LDAP Server
+GET
+Get LDAP Server
+GET
+List LDAP Servers
+PATCH
+Update existing LDAP server

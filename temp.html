@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <script>
+        var EPSILON = '\'\'';
+        var i=0;
+        function grammerChanged(input){
+            var lines = document.querySelector('textarea').value.split("\n")
+            var empty_lines=false
+            for(var i=lines.length-2;i>=0;i--){
+                if( lines[i].match(/[^ ]+/)==null ){
+                    lines.splice(i,1);
+                    empty_lines=true;
+                }
+            }
+            if(empty_lines)
+                document.querySelector('textarea').value=lines.join("\n")
+            var last_line=lines[lines.length-1]
+            var last_char=last_line[last_line.length-1]
+            // document.querySelector("div").innerHTML="last line:" +last_line+ "\nlast char: "+last_line[last_line.length-1];
+            if(last_char==' '){
+                var terms=last_line.match(/[\w'->|]+/g);
+                if(terms.length<2 && terms[0]!="|")
+                    document.querySelector('textarea').value+="-> "
+            }
+            if(last_char==undefined){
+                if(lines.length>1){
+                    var temp=lines[lines.length-2].match(/[\w'->|]+/g)
+                    // document.querySelector("div").innerHTML=temp[temp.length-2]
+                    if(temp.length==2 && temp[temp.length-1]=="->" ){
+                        lines[lines.length-2]+=EPSILON;
+                        document.querySelector('textarea').value=lines.join("\n")
+                    }
+                }
+            }
+        }
+
+    function correctRules(){
+        var lines = document.querySelector('textarea').value.split("\n")
+            var new_arrow=false
+            for(var i=0;i<lines.length;i++){
+                lines[i]=lines[i].replace("ϵ",EPSILON);
+                if( lines[i].match(/[ ]*[|]/)!=null ){
+                    var head=lines[i-1].match(/.+-> /)[0];
+                    lines[i]=lines[i].replace(/[ ]*[|] /,head);
+                    new_arrow=true;
+                }
+            }
+            document.querySelector('textarea').value=lines.join("\n")
+            // var lines_split=[];
+            // lines.forEach(line=>lines_split.push(line.))
+    }
+
+    </script>
+    <body>
+        <div><pre></pre> </div>
+        <textarea autofocus=true rows="10" cols="20" oninput="grammerChanged()"></textarea>
+        <button onclick="correctRules()">click</button>
+    </body>
+</html>

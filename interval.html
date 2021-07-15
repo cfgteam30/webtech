@@ -1,0 +1,18 @@
+<html>
+    <body style="background-color: green;">
+        <script>
+            var canvas=document.querySelector("#canvas");
+            var red=true;
+            var inter=setInterval(() => {
+                document.body.style.backgroundColor= red? "red": "green";
+                red=!red;
+            }, 1000);
+            function stopper(){
+                clearInterval(inter)
+            }
+        </script>
+        <h1>Hello world</h1>
+        <button onclick="stopper()" >stop</button>
+
+    </body>
+</html>

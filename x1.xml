@@ -1,0 +1,16 @@
+<!DOCTYPE cars_catalog SYSTEM "cars.dtd">
+<?xml-stylesheet type="text/css" href="s1.css"?>
+<cars_catalog>
+    <car>
+        <make>xxx</make>
+        <year>1999</year>
+        <color>bule</color>
+        <engine>
+            <number_of_cylinders>8</number_of_cylinders>
+            <fuel_system>yyy</fuel_system>
+        </engine>
+        <number_of_doors>4</number_of_doors>
+        <transmission_type>automatic</transmission_type>
+        <accessories radio="yes" air_conditioning="yes" power_brakes="yes" power_steering="yes" power_windows="yes"/>
+    </car>
+</cars_catalog>

@@ -1,0 +1,30 @@
+<html>
+    <body>
+        
+        <img src="flower.jpg"/>
+        <p >
+            12345678901234567890hrsxngcmhg,jhkjluhygfngc bnmjhuygtf bnjhugtfrbc nmjhuygtfrdvbghjhuygtfgrcv b
+        </p>
+        
+        <script>
+            var windowsize={
+                w:window.innerWidth,
+                h:window.innerHeight
+            };
+            var psize={
+                w:10,
+                h:10
+            };
+            var p=document.querySelector("p");
+            p.style.position="absolute";
+            p.style.top=windowsize.h/2-psize.h/2;
+            p.style.left=windowsize.w/2-psize.w/2;
+            p.style.backgroundColor="gray";
+            console.log(p.style)
+            var img=document.querySelector("img");
+            img.style.position="absolute";
+            img.style.top=p.style.top;
+            img.style.left=p.style.top;
+        </script>
+    </body>
+</html>

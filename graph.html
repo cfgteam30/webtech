@@ -1,0 +1,364 @@
+
+<style>
+    text {
+        font: bold 20px sans-serif;
+    }
+    svg{
+        position: absolute;
+        pointer-events: none;
+        border:red dashed ;
+    }
+</style>
+</head>
+
+<body>
+    <div>
+        <svg style="border:black solid; margin-left:0;margin-top:0;pointer-events: all;" id="main_svg" height="400" width="400"
+            onclick="clicked(evt)">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                refX="0" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" />
+                </marker>
+                <marker id="edgeweight" markerWidth="15" markerHeight="10" refX="0" refY="0" style="overflow:  visible">
+                    <text x="0" y="0">hello</text>
+                </marker>
+              </defs>
+              <g id="graph">
+                <g id="nodes"></g>
+                <g id="edges"></g>
+              </g>
+        </svg>
+    </div>
+    <div style="position: absolute;left: 500;"> 
+        <button onclick="src()">make Source</button><br><br>
+        <button onclick="dest()">make destination</button><br><br>
+        <button onclick="deleteFunc()">delete</button><br><br>
+        <button onclick="editNode()">editNode</button><br><br>
+        start from<input type="text" size="4" oninput="startFrom(event)" /><br><br>
+        edge weight<input id="edgeWeightInput" type="text" size="4" onchange="modifyEdge(event)" style="pointer-events: none;" /><br><br>
+        <button onclick="ford()">ford-fukerson</button>
+    </div>
+    <div id="calc" style="position: absolute;top: 420;"></div>
+
+
+
+
+
+
+
+
+
+
+    <script type="text/ecmascript">
+        // targeting the svg itself
+        const svg_nodes = document.querySelector("#nodes");
+        const svg_edges = document.querySelector("#edges");
+        // variable for the namespace 
+        const svgns = "http://www.w3.org/2000/svg";
+        var nodesP = [];
+        var edgesP = [];
+        var namer = '0';
+        var selectedNode = null;
+        var selectedEdge = null;
+        var srcNode=null;
+        var destNode=null;
+        // function cl(){
+        //     main_svg.setAttribute("transform","translate(100,100)")
+        // }
+        function ford(){
+            if(!srcNode || !destNode){
+                console.log("specify src and dest");
+                return;
+            }
+            var i=0;
+            var obj={};
+            for(var edge of edgesP){
+                if(!(edge.from.id in obj))
+                    obj[edge.from.id]={};
+                obj[edge.from.id][edge.to.id]=parseInt(edge.children[1].innerHTML);                   
+            }
+            var calc=document.querySelector("#calc");
+            var max_flow=0;
+            while(true){
+                var [res,stack]=augPath(obj,srcNode.id,destNode.id);
+                if(!res)
+                    return;
+                for(var i=0;i<stack.length-1;i++){
+                    obj[stack[i]][stack[i+1]]-=min;
+                    if(!obj[stack[i+1]]){
+                        obj[stack[i+1]]={};
+                        obj[stack[i+1]][stack[i]]=0;
+                    }
+                    obj[stack[i+1]]+=min;
+                }
+                console.log(obj);
+
+                let svg = document.createElementNS(svgns, 'svg');
+                svg.setAttribute("height",400);
+                svg.setAttribute("width",400);
+
+                let ng = svg_nodes.cloneNode(true);
+                for(var n of ng.children){
+                    n.in=[];
+                    n.out=[];
+                }
+
+                let eg = document.createElementNS(svgns, 'g');
+                for(var node1 of ng.children)
+                    for(var node2 of ng.children)
+                        if(obj[node1.id] && obj[node1.id][node2.id])
+                            addEdge(node1,node2,obj[node1.id][node2.id],eg);
+                
+                let gg=document.createElementNS(svgns, 'g');
+                gg.appendChild(ng);
+                gg.appendChild(eg);
+                gg.setAttribute("transform","translate("+i*400+",0)")
+                svg.appendChild(gg);
+                svg.setAttribute("top",400*i);
+                calc.appendChild(svg);
+                break;
+                i++;
+            }
+        }
+        function augPath(obj,s,t){
+            console.log(obj)
+            var vis={};
+            var min=0;
+            for(var n in vis)
+                vis[n]=false;
+            var stack=[s];
+            while(true){
+                if(stack.length==0 )
+                    return [0,null];
+                if(stack[stack.length-1]==t)
+                    break;
+                var cur=obj[stack[stack.length-1]];
+                if(!cur || Object.keys(cur).length==0){
+                    stack.pop();
+                    continue;
+                }
+                var flag=false;
+                for(var n in cur){
+                    if(!vis[n]){
+                        vis[n]=true;
+                        min=Math.min(min,cur[n]);
+                        stack.push(n);
+                        flag=true;
+                        break;
+                    }
+                }
+                if(!flag)
+                    stack.pop();
+            }
+            return [min,stack];
+        }
+        //function to add
+        
+        function clickNode(node){
+            if(selectedEdge)
+                unselectEdge();
+            if(selectedNode==node){
+                unselect();
+            }else if(selectedNode==null){
+                select(node);
+                selectedNode=node;
+            }else if(selectedNode!=null){
+                for(var g of selectedNode.out)
+                    if(g.to==node){
+                        unselect();
+                        console.log("already exist!");
+                        return;
+                    }
+                addEdge(selectedNode,node);
+            }
+        }
+        function selectEdge(g){
+
+            if(selectedNode!=null)
+                unselect();
+            selectedEdge=g;
+            document.querySelector("#edgeWeightInput").focus();
+
+        }
+        function unselectEdge(){
+            
+            selectedEdge=null;
+        }
+        function select(node){
+            node.children[0].setAttribute("fill", "#eee85c");
+            selectedNode=node;
+        }
+        function unselect(){
+            if(selectedNode==destNode)
+                selectedNode.children[0].setAttribute("fill", "#4103fc");
+            else if(selectedNode==srcNode)
+                selectedNode.children[0].setAttribute("fill", "#fc4103");
+            else
+                selectedNode.children[0].setAttribute("fill", "#5c8eee");
+            selectedNode=null;
+        }
+        function clicked(event) {
+    
+            //create a group
+            let g = document.createElementNS(svgns, 'g');
+            g.id = getNamer();
+            g.addEventListener('click', (event) => {event.stopPropagation();clickNode(g)}, true)
+            g.in=[];
+            g.out=[];
+            
+            //create circle for node
+            let circle = document.createElementNS(svgns, "circle");
+            circle.setAttribute("cx", event.pageX);
+            circle.setAttribute("cy", event.clientY);
+            circle.setAttribute("r", "20");
+            circle.setAttribute("fill", "#5c8eee");
+            g.appendChild(circle);
+
+            //create name of node
+            let text = document.createElementNS(svgns, "text");
+            text.innerHTML = g.id;
+            text.setAttribute("text-anchor", 'middle');
+            text.setAttribute("x", event.pageX);
+            text.setAttribute("y", event.pageY + 5);
+            g.appendChild(text);
+            nodesP.push(g);
+            // append the new group to the svg
+            svg_nodes.appendChild(g);
+        }
+        function addEdge(from, to, weight=10, svg_dest=svg_edges){
+            var x1,y1,x1,y2,x1_,y1_,x2_,y2_;
+            x1_=parseInt( from.children[0].getAttribute("cx"));y1_=parseInt( from.children[0].getAttribute("cy"));
+            x2_=parseInt( to.children[0].getAttribute("cx"));y2_=parseInt( to.children[0].getAttribute("cy"));
+            var tan=(y1_-y2_)/(x1_-x2_);
+            var w= Math.round( 20 / Math.sqrt(1+tan*tan));
+            var h= Math.abs( Math.round( tan*w));
+            if(x1_>x2_){
+                x1=x1_-w;
+                x2=x2_+2*w;
+            }else{
+                x1=x1_+w;
+                x2=x2_-2*w;
+            }
+            if(y1_>y2_){
+                y1=y1_-h;
+                y2=y2_+1.3*h;
+            }else{
+                y1=y1_+h;
+                y2=y2_-1.3*h;
+            }
+    
+            //create a group
+            let g = document.createElementNS(svgns, 'g');
+            g.addEventListener('click', (event) => {
+                event.stopPropagation();
+                selectEdge(g);
+            }, true)
+            g.from=from;
+            g.to=to;
+            
+            //create circle for node
+            let line = document.createElementNS(svgns, "line");
+            line.setAttribute("x1", x1);
+            line.setAttribute("y1", y1);
+            line.setAttribute("x2", x2 );
+            line.setAttribute("y2", y2 );
+            line.setAttribute("stroke", "black");
+            line.setAttribute("stroke-width", 2);
+            line.setAttribute("marker-end", "url(#arrowhead)");
+            g.appendChild(line);
+
+            //create name of node
+            let text = document.createElementNS(svgns, "text");
+            text.innerHTML = weight;
+            text.setAttribute("text-anchor", 'middle');
+            text.setAttribute("x", Math.round((x1+x2)/2));
+            text.setAttribute("y", Math.round((y1+y2)/2));
+            g.appendChild(text);
+            g.from.out.push(g);
+            g.to.in.push(g);
+    
+            // append the new group to the svg
+            svg_dest.appendChild(g);
+            edgesP.push(g);
+            selectEdge(g);
+        }
+        function editNode(){
+            if(selectedNode!=null){
+                var newName=prompt("enter new name");
+                selectedNode.children[1].innerHTML = newName;
+            }
+        }
+        function modifyEdge(e){
+            selectedEdge.children[1].innerHTML=e.target.value;
+            e.target.value="";
+            e.target.blur();
+        }
+        function deleteFunc() {
+            if(selectedEdge!=null){
+                deleteEdge(selectedEdge);
+                unselectEdge();
+            }else if(selectedNode){
+                for(var edge of selectedNode.in)
+                    deleteEdge(edge);
+                for(var edge of selectedNode.out)
+                    deleteEdge(edge);
+                remove_array_element(nodesP,selectedNode);
+                svg_nodes.removeChild(selectedNode);
+                unselect();
+            }
+        }
+        function deleteEdge(edge){
+
+            remove_array_element(edge.from.out,edge);
+            remove_array_element(edge.to.in,edge);
+            remove_array_element(edgesP,edge);
+            remove_array_element(edgesP,edge);
+            svg_edges.removeChild(edge);
+        }
+        function remove_array_element(array, val)
+        {
+            var index = array.indexOf(val);
+            if (index > -1) {
+                array.splice(index, 1);
+            }
+        }
+        function src(){
+            if(selectedNode){
+                
+                var tmp=srcNode
+                srcNode=selectedNode;
+                unselect();
+                if(tmp){
+                    selectedNode=tmp;
+                    unselect();
+                }
+            }
+        }
+        function dest(){
+            if(selectedNode){
+                
+                var tmp=destNode;
+                destNode=selectedNode;
+                unselect();
+                if(tmp){
+                    selectedNode=tmp;
+                    unselect();
+                }
+            }
+        }
+        function startFrom(event) {
+            namer = event.target.value[0];
+        }
+        function getNamer() {
+            let temp = namer;
+            if (isNaN(temp))
+                namer = String.fromCharCode(temp.charCodeAt(0) + 1);
+            else
+                namer = Number.parseInt(temp) + 1;
+            return temp;
+        }
+    </script>
+</body>
+
+</html>

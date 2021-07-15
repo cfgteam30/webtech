@@ -1,0 +1,34 @@
+
+<style>
+    img{
+        position: absolute;
+        background-color: aliceblue;
+    }
+    #img0{
+        z-index: 0;
+    }
+    #img1{
+        z-index: 1;
+    }
+    #img2{
+        z-index: 2;
+    }
+</style>
+<div>
+    <img id="img0" src="img1.png" style=" top: 20; left: 30;border: 4px dashed red;" />
+    <img id="img1" src="img2.png" style=" top: 40; left: 10;border: 4px double blue;" />
+    <img id="img2" src="img3.jpg" style=" top: 80; left: 0;border: 4px solid purple;" />
+</div>
+<script>
+    // for(var i=0;i<3;i++)
+    //     document.querySelector("#img"+i).style.zIndex=i;
+    function myclick(num){
+        for(var i=0;i<3;i++)
+            if( document.querySelector("#img"+i).style.zIndex > num)
+                document.querySelector("#img"+i).style.zIndex--;
+        document.querySelector("#img"+num).style.zIndex=2;
+    }
+</script>
+<button onclick="myclick(0)" >img1</button>
+<button onclick="myclick(1)" >img2</button>
+<button onclick="myclick(2)" >img3</button>

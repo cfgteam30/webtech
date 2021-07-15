@@ -1,0 +1,182 @@
+<style>
+    table { border-collapse: collapse; }
+    td, th { border: 1px solid; padding: 5px; margin: 0.25px; text-align: center;}
+body {
+    font-family: "Lato", sans-serif;
+}
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidenav a:hover {
+    color: #f1f1f1;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+@media screen and (max-height: 450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+}
+    </style>
+<div id="mySidenav" class="sidenav" style="width: 250px;">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <a href="Count.html">Count Sort</a>
+    <a href="ActivitySelection.html">Activity Selection</a>
+    <a href="Radix.html">Radix Sort</a>
+    <a href="LCS.html">LCS</a>
+    <a href="Matrix.html">Matrix Chain Multiplication</a>
+</div>
+<pre >
+    P:<input onkeypress="finishKeys(event)" style="margin: 10pt" id="P" size="100" value="3 2 4 2 5"/>
+    <button onclick="myclick()">GO</button>
+    <pre id="calculations"> </pre>
+    
+</pre>
+<script>
+    function finishKeys(event){
+        if(event.key=="Enter")
+            myclick();
+    }
+    function myclick(){
+        document.querySelector("#calculations").innerHTML="";
+        var input=document.querySelector("#P");
+        var P=input.value.match(/[0-9]+/g);
+        MCM(P);
+    }
+    function MCM(p){
+        var n=p.length-1;
+        var c=[],b=[];
+        for(var i=0;i<n;i++){
+            var tmp=new Array(n);
+            tmp.fill("");
+            tmp[i]=0;
+            c.push(tmp);
+            tmp=new Array(n);
+            tmp.fill("");
+            b.push(tmp);
+        }
+        console.log("first",c);
+        var calc_str="";
+        for(var l=2;l<=n;l++)
+            for(var i=1;i<=n-l+1;i++){
+                var j=i+l-1;
+                calc_str+="m["+i+","+j+"]=min { \n";
+                c[i-1][j-1]=Number.MAX_VALUE;
+                for(var k=i;k<j;k++){
+                    var tmp=c[i-1][k-1]+c[k][j-1]+p[i-1]*p[k]*p[j];
+                    calc_str += "\t\tm["+i+","+k+"] + m["+k+1+","+j+"] + p["+(i-1)+"]*p["+k+"]*p["+j+"] = "+
+                                c[i-1][k-1]+" + "+c[k][j-1]+" + "+p[i-1]+"*"+p[k]+"*"+p[j]+" = "+
+                                tmp+",\n";
+                    if(tmp<c[i-1][j-1]){
+                        c[i-1][j-1]=tmp;
+                        b[i-1][j-1]=k;
+                    }
+                }
+                calc_str+="\t}\n\t="+c[i-1][j-1]+"\n\n";
+            }
+        document.querySelector("#calculations").appendChild(document.createTextNode(calc_str));
+        PrintMCM(c,b,n);
+        
+    }
+    function PrintMCM(c,b,n) {
+        
+        var calc=document.querySelector("#calculations");
+        var table = document.createElement('table');
+        var tableBody = document.createElement('tbody');
+
+        var row = document.createElement('tr');
+        var cell = document.createElement('td');
+        cell.style.border="none";
+        row.appendChild(cell);
+        for(var i=1;i<=n;i++){
+            cell = document.createElement('td');
+            cell.appendChild(document.createTextNode(i));
+            cell.style.border="none";
+            row.appendChild(cell);
+        }
+        tableBody.appendChild(row);
+
+
+        for(i=1;i<=n;i++){
+            row = document.createElement('tr');
+            cell = document.createElement('td');
+            cell.appendChild(document.createTextNode(i));
+            cell.style.border="none";
+            row.appendChild(cell);
+            for(var j=0;j<n;j++){
+                cell = document.createElement('td');
+                cell.appendChild(document.createTextNode( c[i-1][j] ));
+                row.appendChild(cell);
+            }
+            tableBody.appendChild(row);
+        }
+        
+
+        table.appendChild(tableBody);
+        calc.appendChild(document.createTextNode("m"))
+        calc.appendChild(table);
+
+        
+        table = document.createElement('table');
+        tableBody = document.createElement('tbody');
+
+        row = document.createElement('tr');
+        cell = document.createElement('td');
+        cell.style.border="none";
+        row.appendChild(cell);
+        for(var i=1;i<=n;i++){
+            cell = document.createElement('td');
+            cell.appendChild(document.createTextNode(i));
+            cell.style.border="none";
+            row.appendChild(cell);
+        }
+        tableBody.appendChild(row);
+
+
+        for(i=1;i<=n;i++){
+            row = document.createElement('tr');
+            cell = document.createElement('td');
+            cell.appendChild(document.createTextNode(i));
+            cell.style.border="none";
+            row.appendChild(cell);
+            for(var j=0;j<n;j++){
+                cell = document.createElement('td');
+                cell.appendChild(document.createTextNode( b[i-1][j] ));
+                row.appendChild(cell);
+            }
+            tableBody.appendChild(row);
+        }
+        
+
+        table.appendChild(tableBody);
+        calc.appendChild(document.createTextNode("s"))
+        calc.appendChild(table);
+
+    }
+</script>

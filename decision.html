@@ -1,0 +1,336 @@
+<style>
+    input[type=text] {
+        size: 5;
+    }
+
+    td {
+        width: auto;
+    }
+</style>
+
+<body>
+    <button onclick="addRow()">addRow</button>
+    <button onclick="addCol()">addCol</button>
+    <button onclick="rmCol()">rmCol</button>
+    <button onclick="rmRow()">rmRow</button>
+    <button onclick="calculate()">calc</button><br/>
+    <table border id="table" style="margin: 0.5cm; " align="left" oninput="tableInput()">
+        <tr>
+            <td></td>
+            <td>
+                <label contenteditable="true" >attr1</label>
+                <input type="checkbox" />
+            </td>
+            <td>
+                <label contenteditable="true" >attr2</label>
+                <input type="checkbox" />
+            </td>
+        </tr>
+    </table>
+    <textarea id="textArea" style="margin: 0.5cm; white-space: pre-wrap;" rows="10" cols="12" oninput="areaInput()" ></textarea>
+    <div id="calc"></div>
+    <script>
+        var table = document.getElementById("table");
+        var textArea = document.getElementById("textArea");
+        var calculation = document.getElementById("calc");
+        var attrs = [["","","","","",""]];
+        console.log(attrs)
+        var tar = ["","","","","",""];
+        var attrNames = ["attr1","attr2"] ;
+        var attrNumeric = [];
+        function addRow() {
+            var row = table.insertRow();
+            var cell = row.insertCell();
+            cell.innerText = table.rows.length - 1
+            var attr=[];
+            for (var i = 0; i < table.rows[0].cells.length - 1; i++) {
+                cell = row.insertCell();
+                cell.contentEditable=true;
+                attr.push("");
+            }
+            attrs.push(attr);
+        }
+        function addCol() {
+            var cell = table.rows[0].insertCell();
+            var label = document.createElement("label");
+            label.contentEditable=true;
+            label.innerText = "attr" + (table.rows[0].cells.length - 1);
+            cell.appendChild(label);
+            var input = document.createElement("input");
+            input.type = "checkbox";
+            cell.appendChild(input);
+            for (var i = 1; i < table.rows.length; i++) {
+                cell = table.rows[i].insertCell();
+                cell.contentEditable=true;
+            }
+        }
+        function rmCol() {
+            for (var i = 0; i < table.rows.length; i++) {
+                cell = table.rows[i].deleteCell(-1)
+            }
+        }
+        function rmRow() {
+            table.deleteRow(-1);
+        }
+        function tableInput(){
+            console.log("getting table");
+            getAttrs();
+            setArea();
+        }
+        function areaInput(){
+            console.log("getting area");
+            var str=textArea.innerText;
+            var a1=str.split("\n");
+            for(var i=0;i<a1.length;i++){
+                a1[i]=a1[i].split(",");
+            }
+            attrs=a1;
+            setTable();
+        }
+        function setArea(){
+            console.log("setting area");
+            console.log(attrs);
+            var str=attrs.join("\n");
+            textArea.innerHTML=str;
+        }
+        function setTable(){
+            console.log("setting table");
+            for (var i = 1; i < table.rows[0].cells.length - 1; i++) {
+                for (var j = 1; j < table.rows.length; j++) {
+                    table.rows[j].cells[i].innerText=attr[i-1][j-1];
+                }
+            }
+            for (var i = 1; i < table.rows.length; i++)
+                table.rows[i].cells[table.rows[0].cells.length - 1].innerText=tar[i-1];
+        }
+        function calculate() {
+            getAttrs();
+            calculation.appendChild(text(counts(tar)[1]));
+            calculation.appendChild(text("Entropy:"));
+            var entropy = {};
+            var [en, _, _, str, _, _] = calcImpurity(tar, "target");
+            calculation.appendChild(text(str + "<hr/>"));
+            entropy.tarEn = en;
+            entropy.attrEn = [];
+            entropy.attrGINI = [];
+            var gini, classErr;
+            for (var i = 0; i < attrs.length; i++) {
+                calculation.appendChild(text("<b><u>" + attrNames[i] + " </u></b>"));
+                if (attrNumeric[i])
+                    [en, gini, classErr, str] = numericAttrImpurity(attrs[i], attrNames[i]);
+                else
+                    [en, gini, classErr, str] = attrImpurity(attrs[i], attrNames[i]);
+                calculation.appendChild(text(str + "<hr/>"));
+                entropy.attrEn.push(en);
+                entropy.attrGINI.push(gini);
+            }
+            var decision;
+            [decision, str] = informationGain(entropy);
+            calculation.appendChild(text(str));
+        }
+
+        function calcImpurity(attr, name) {
+            var mp = counts(attr)[0];
+
+            var strE = `entropy(${name})= `;
+            var strG = `GINI(${name})= 1 `;
+            var strC = `ClassificationError(${name})= 1 - max(`;
+            var total = attr.length;
+            var en = 0.0;
+            var gini = 1;
+            var classErr = 0;
+            for (var [k, v] of mp) {
+                en += -(v / total) * Math.log2((v / total));
+                gini += - Math.pow(v / total, 2);
+                classErr = Math.max(classErr, (v / total));
+                strE += `-(${v}/${total})log(${v}/${total}) `;
+                strG += `-(${v}/${total})<sup>${2}</sup> `;
+                strC += `(${v}/${total}), `;
+            }
+            en = decimalRound(en);
+            gini = decimalRound(gini);
+            classErr = decimalRound(1 - classErr);
+            strE += "\n=" + en;
+            strG += "\n=" + gini;
+            strC += ")\n=" + classErr;
+            return [en, gini, classErr, strE, strG, strC];
+        }
+
+        function attrImpurity(attr, name) {
+            var attrVals = {};
+            for (var i = 0; i < attr.length; i++) {
+                if (attrVals[attr[i]] == undefined)
+                    attrVals[attr[i]] = [tar[i]];
+                else
+                    attrVals[attr[i]].push(tar[i]);
+            }
+            var strE = "", strG = "", strC = "";
+            var strE1 = `entropy(T,${name})= `;
+            var strG1 = `GINI(T,${name})= `;
+            var strC1 = `ClassificationError(T,${name})= `;
+            var totalEn = 0;
+            var totalGini = 0;
+            var totalClassError = 0;
+            var strE2, strG2, strC2;
+            var en = 0;
+            var gini = 0;
+            var classErr = 0;
+            console.log(attrVals);
+            for (var prop in attrVals) {
+                [en, gini, classErr, strE2, strG2, strC2] = calcImpurity(attrVals[prop], name + "," + prop);
+                strE += strE2 + "\n";
+                strG += strG2 + "\n";
+                strC += strC2 + "\n";
+                strE1 += "+(" + attrVals[prop].length + "/" + attr.length + ")x(" + en + ") ";
+                strG1 += "+(" + attrVals[prop].length + "/" + attr.length + ")x(" + gini + ") ";
+                strC1 += "+(" + attrVals[prop].length + "/" + attr.length + ")x(" + classErr + ") ";
+                totalEn += (attrVals[prop].length / attr.length) * en;
+                totalGini += (attrVals[prop].length / attr.length) * gini;
+                totalClassError += (attrVals[prop].length / attr.length) * classErr;
+            }
+            totalEn = decimalRound(totalEn);
+            totalGini = decimalRound(totalGini);
+            totalClassError = decimalRound(totalClassError);
+            strE1 += "\n=" + totalEn;
+            strG1 += "\n=" + totalGini;
+            strC1 += "\n=" + totalClassError;
+            strE += strE1;
+            strG += strG1;
+            strC += strC1;
+            return [totalEn, totalGini, totalClassError,
+                strE + "<hr style=\"border-style: dashed;\" />"
+                + strG + "<hr style=\"border-style: dashed;\" />" + strC];
+        }
+
+        function numericAttrImpurity(attr, name) {
+            var numAttr = [];
+            for (var i = 0; i < attr.length; i++) {
+                numAttr.push([attr[i], tar[i]]);
+            }
+            numAttr.sort((a, b) => a[0] - b[0]);
+            var str = "sorted: [";
+            numAttr.forEach(ele => str += ele[0] + ",");
+            str += "]\n";
+            var best = { threshold:0, gini: 2 };
+            for (var i = 0; i < attr.length - 1; i++) {
+                var threshold = (numAttr[i][0] + numAttr[i + 1][0]) / 2;
+                str += "<B>threshold=" + threshold + "</b>\n";
+                var tempAttr1 = [];
+                numAttr.forEach(ele => {
+                    if (ele[0] <= threshold)
+                        tempAttr1.push(ele[1]);
+                });
+                var [en1, gini1, classErr1, strE1, strG1, strC1] = calcImpurity(tempAttr1, "<=" + threshold);
+                str += strE1 + "\n" + strG1 + "\n" + strC1 + "\n";
+                var tempAttr2 = [];
+                numAttr.forEach(ele => {
+                    if (ele[0] > threshold)
+                        tempAttr2.push(ele[1]);
+                });
+                var [en2, gini2, classErr2, strE2, strG2, strC2] = calcImpurity(tempAttr2, ">" + threshold);
+                str += strE2 + "\n" + strG2 + "\n" + strC2 + "\n";
+                var wGini = decimalRound((tempAttr1.length / attr.length) * gini1 + (tempAttr2.length / attr.length) * gini2);
+                var wEn = decimalRound((tempAttr1.length / attr.length) * en1 + (tempAttr2.length / attr.length) * en2);
+                var wClassErr = decimalRound((tempAttr1.length / attr.length) * classErr1 + (tempAttr2.length / attr.length) * classErr2);
+
+                str += `entropy(T,${name}<sub>thresh=${threshold}</sub>)
+                = (${tempAttr1.length}/${attr.length})*${en1}+(${tempAttr2.length}/${attr.length})*${en2}\t
+                = ${wEn}\n`;
+
+                str += `GINI(T,${name}<sub>thresh=${threshold}</sub>)
+                = (${tempAttr1.length}/${attr.length})*${gini1}+(${tempAttr2.length}/${attr.length})*${gini2}\t
+                = ${wGini}\n`;
+
+                str += `ClassificationError(T,${name}<sub>thresh=${threshold}</sub>)
+                = (${tempAttr1.length}/${attr.length})*${classErr1}+(${tempAttr2.length}/${attr.length})*${classErr2}\t
+                = ${wClassErr}\n`;
+
+                if (wGini < best.gini) {
+                    best.threshold = threshold;
+                    best.gini = wGini;
+                    best.classErr = wClassErr;
+                    best.en = wEn;
+                }
+            }
+            str+="<b>selecting best split "+best.threshold+"</b>"
+            return [best.en, best.gini, best.classErr, str];
+        }
+
+        function informationGain(entropy) {
+            var IGs = [];
+            var str = "";
+            for (var i = 0; i < entropy.attrEn.length; i++) {
+                var IG = decimalRound(entropy.tarEn - entropy.attrEn[i]);
+                IGs.push(IG);
+                str += "I(T," + attrNames[i] + ") = H(t)-H(t," + attrNames[i] + ")\n=" + entropy.tarEn + "-" + entropy.attrEn[i] + "\n=" + IG + "\n";
+            }
+            var i = argMax(IGs);
+            str += "split With attribute " + attrNames[i];
+            return [i, str]
+        }
+
+        function text(str) {
+            var pre = document.createElement("pre");
+            pre.innerHTML = str;
+            return pre;
+        }
+
+        function counts(attr) {
+            var mp = new Map();
+            for (var i = 0; i < attr.length; i++)
+                if (!mp.has(attr[i]))
+                    mp.set(attr[i], 1);
+                else
+                    mp.set(attr[i], mp.get(attr[i]) + 1);
+            var str = "";
+            for (var [k, v] of mp) {
+                str += k + ":" + v + "\n";
+            }
+            return [mp, str];
+        }
+
+        function getAttrs() {
+            attrNames = [];
+            attrNumeric = [];
+            for (var i = 1; i < table.rows[0].cells.length - 1; i++) {
+                attrNames.push(table.rows[0].cells[i].children.item(0).innerText);
+                attrNumeric.push(table.rows[0].cells[i].children.item(1).checked);
+            }
+            attrs = [];
+            for (var i = 1; i < table.rows[0].cells.length - 1; i++) {
+                var s = [];
+                for (var j = 1; j < table.rows.length; j++) {
+                    var str = table.rows[j].cells[i].innerText;
+                    if (str.match(/\d+/))
+                        str = parseInt(str);
+                    else if (str.match(/\d+.\d+/))
+                        str = parseFloat(str);
+                    s.push(str);
+                }
+                attrs.push(s);
+            }
+            tar = [];
+            for (var i = 1; i < table.rows.length; i++) {
+                var str = table.rows[i].cells[table.rows[0].cells.length - 1].innerText;
+                if (str.match(/\d+/))
+                    str = parseInt(str);
+                else if (str.match(/\d+.\d+/))
+                    str = parseFloat(str);
+                tar.push(str);
+            }
+        }
+        function decimalRound(val) {
+
+            val *= 1e4;
+            val = Math.round(val);
+            val /= 1e4;
+            return val;
+        }
+        function argMax(array) {
+            return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r))[1];
+        }
+        for (var i = 0; i < 6; i++)
+            addRow()
+        setArea();
+    </script>
+</body>

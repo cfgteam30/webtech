@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <style>
+            body {
+                font-family: "Lato", sans-serif;
+            }
+            
+            .sidenav {
+                height: 100%;
+                width: 0;
+                position: fixed;
+                z-index: 1;
+                top: 0;
+                right: 0;
+                background-color: #111;
+                overflow-x: hidden;
+                transition: 0.5s;
+                padding-top: 60px;
+            }
+            
+            .sidenav a {
+                padding: 8px 8px 8px 32px;
+                text-decoration: none;
+                font-size: 25px;
+                color: #818181;
+                display: block;
+                transition: 0.3s;
+            }
+            
+            .sidenav a:hover {
+                color: #f1f1f1;
+            }
+            
+            .sidenav .closebtn {
+                position: absolute;
+                top: 0;
+                right: 25px;
+                font-size: 36px;
+                margin-left: 50px;
+            }
+            
+            @media screen and (max-height: 450px) {
+                .sidenav {padding-top: 15px;}
+                .sidenav a {font-size: 18px;}
+            }
+                </style>
+            <div id="mySidenav" class="sidenav" style="width: 250px;">
+              <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+              <a href="Count.html">Count Sort</a>
+              <a href="ActivitySelection.html">Activity Selection</a>
+              <a href="Radix.html">Radix Sort</a>
+              <a href="LCS.html">LCS</a>
+              <a href="Matrix.html">Matrix Chain Multiplication</a>
+            </div>
+        array<input size=20 value="329 457 657 839 436 720 355 124">
+        <button onclick="sort()" >sort</button>
+        <pre></pre>
+        <script>
+            function sort(){
+                var arr=document.querySelector("input").value.match(/[0-9]+/g);
+                var k=Math.max(...arr.map(num=>num.length));
+                console.log(k);
+                var area=document.querySelector("pre");
+                area.innerHTML=""
+                // area.innerHTML="\t"
+                // for(var i=1;i<=arr.length;i++)
+                //     area.innerHTML+=i+"\t"
+                // area.innerHTML+="\n";
+
+                for(var i=1;i<=k;i++){
+                    area.innerHTML+="<b>A:</b>\t"
+                    for(var num of arr)
+                        area.innerHTML+="<b>"+num+"</b>"+"\t"
+                    area.innerHTML+="\n";
+                    area.innerHTML+="\t"
+                    for(var j=0;j<=9;j++)
+                        area.innerHTML+=j+"\t"
+                    area.innerHTML+="\n";
+                    let C=Array(10);
+                    C.fill(0);
+                    // area.innerHTML+="<b>C:</b>\t"
+                    // for(var num of C)
+                    //     area.innerHTML+="<b>"+num+"</b>"+"\t"
+                    // area.innerHTML+="\n";
+                    for(var num of arr){
+                        var tmp=num[k-i];
+                        tmp=parseInt(tmp);
+                        C[tmp]++;
+                    }
+                    area.innerHTML+="<b>C:</b>\t"
+                    for(var num of C)
+                        area.innerHTML+="<b>"+num+"</b>"+"\t"
+                    area.innerHTML+="\n";
+                    area.innerHTML+="<b>"+"C:\t"+C[0]+"</b>"+"\t"
+                    for(var j=1;j<=9;j++){
+                        C[j]=C[j]+C[j-1];
+                        area.innerHTML+="<b>"+(C[j])+"</b>"+"\t"
+                    }
+                    area.innerHTML+="\n";
+                    let B=Array(arr.length);
+                    for(var num of arr.reverse()){
+                        var tmp=num[k-i];
+                        tmp=parseInt(tmp);
+                        B[C[tmp]-1]=num;
+                        C[tmp]--;
+                    }
+                    // area.innerHTML+="<b>B:</b>\t"
+                    // for(var num of B)
+                    //     area.innerHTML+="<b>"+num+"</b>"+"\t"
+                    area.innerHTML+="\n\n";
+                    arr=B;
+                }
+                    area.innerHTML+="<b>A:</b>\t"
+                    for(var num of arr)
+                        area.innerHTML+="<b>"+num+"</b>"+"\t"
+                    area.innerHTML+="\n\n";
+                
+            }   
+        </script>
+    </body>
+</html>

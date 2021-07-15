@@ -1,0 +1,289 @@
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+    td,
+    th {
+        border: 1px solid;
+        padding: 2px;
+    }
+</style>
+<button onclick="go()">Go</button>
+<button onclick="clearPre()">clear</button>
+<input size=2 value=14 />
+<textarea id="textArea" style="margin: 0.5cm; white-space: pre-wrap;" rows="10" cols="100">Outlook Sunny:1,2,8,9,11 Rain:14,10,6,5,4 Overcast:
+Temp Hot,Hot,Hot,Mild,Cool,Cool,Cool,Mild,Cool,Mild,Mild,Mild,Hot,Mild
+Humidity Normal:5,6,7,9,10,11,13 High:
+Wind Strong:14,12,11,7,6,2 Weak:
+PlayTennis No:14,8,6,2,1 Yes:</textarea>
+<div></div>
+
+<head>
+    <script>
+        var textArea = document.getElementById("textArea");
+        var calc = document.querySelector("div");
+
+        function go() {
+            var lines = textArea.value.split("\n");
+            var attrNames = [];
+            var attrs = [];
+            var n = parseInt(document.querySelector("input").value);
+            for (var line of lines) {
+                var tmp = line.split(' ');
+                attrNames.push(tmp[0]);
+                if (tmp[1].includes(':')) {
+                    var attr = Array(n);
+                    for (var i = 1; i < tmp.length; i++) {
+                        var tmp1 = tmp[i].match(/[^:]+/g);
+                        if (tmp1.length == 1) {
+                            for (var j = 0; j < attr.length; j++)
+                                if (attr[j] === undefined)
+                                    attr[j] = tmp1[0];
+                        }
+                        else
+                            for (var j of tmp1[1].match(/[0-9]+/g).map(e => parseInt(e)))
+                                attr[j - 1] = tmp1[0];
+                    }
+                    attrs.push(attr)
+                } else {
+                    var attr = tmp[1].match(/[^,]+/g);
+                    attrs.push(attr);
+                }
+            }
+            var queue = [{ names: attrNames, values: attrs }];
+            decisionTree(queue);
+        }
+
+        function decisionTree(queue) {
+            while (queue.length != 0) {
+                var attrs = queue.shift();
+                createTable(attrs.names, attrs.values);
+                var decision = calculate(attrs.names, attrs.values);
+                if (decision == undefined)
+                    continue;
+                var splitter = attrs.values[attrs.names.indexOf(decision)];
+                var cts = counts(splitter)[0];
+                
+                for (var [key, _] of cts.entries()) {
+                    var attrs1 = { names: [], values: [] };
+                    for (var i = 0; i < attrs.names.length; i++)
+                        if (attrs.names[i] != decision) {
+                            attrs1.names.push(attrs.names[i]);
+                            var tmp = [];
+                            for (var j = 0; j < attrs.values[i].length; j++)
+                                if (splitter[j] == key)
+                                    tmp.push(attrs.values[i][j]);
+                            attrs1.values.push(tmp);
+                        }
+                    queue.push(attrs1);
+                }
+
+            }
+        }
+
+        function calculate(attrNames, attrs) {
+            var tar = attrs[attrs.length - 1];
+            var tarName = attrNames[attrs.length - 1];
+            calc.appendChild(text(counts(tar)[1]));
+            calc.appendChild(text("Entropy:"));
+            var [en, str] = calcImpurity(tar, tarName);
+            calc.appendChild(text(str + "<hr/>"));
+            if (en == 0){
+                calc.appendChild(text( "This is a leaf node <hr style=\"border:solid \" />"));
+                return;
+            }
+            var tarEn = en;
+            var entropy = {};
+            for (var i = 0; i < attrs.length - 1; i++) {
+                calc.appendChild(text("<b><u>" + attrNames[i] + " </u></b>"));
+                // if (attrNumeric[i])
+                //     en, str = numericAttrImpurity(attrs[i], attrNames[i]);
+                // else
+                [en, str] = attrImpurity(attrs[i], attrNames[i], tar);
+                calc.appendChild(text(str + "<hr/>"));
+                entropy[attrNames[i]] = en;
+            }
+            var decision;
+            [decision, str] = informationGain(entropy, tarEn);
+            calc.appendChild(text(str + "<hr style=\"border:solid \" />"));
+            return decision;
+        }
+
+        function calcImpurity(attr, name) {
+            var mp = counts(attr)[0];
+
+            var strE = `entropy(${name})= `;
+            var total = attr.length;
+            var en = 0.0;
+            for (var [k, v] of mp) {
+                en += -(v / total) * Math.log2((v / total));
+                strE += `-(${v}/${total})log(${v}/${total}) `;
+            }
+            en = decimalRound(en);
+            strE += "\n=" + en;
+            return [en, strE];
+        }
+
+        function attrImpurity(attr, name, tar) {
+            var attrVals = {};
+            for (var i = 0; i < attr.length; i++) {
+                if (attrVals[attr[i]] == undefined)
+                    attrVals[attr[i]] = [tar[i]];
+                else
+                    attrVals[attr[i]].push(tar[i]);
+            }
+            var strTotalEn = `entropy(T,${name})= `;
+            var strEn = "";
+            var totalEn = 0;
+
+            for (var prop in attrVals) {
+                var [en, str] = calcImpurity(attrVals[prop], name + "," + prop);
+                strEn += str + "\n";
+                strTotalEn += "+(" + attrVals[prop].length + "/" + attr.length + ")x(" + en + ") ";
+                totalEn += (attrVals[prop].length / attr.length) * en;
+            }
+            totalEn = decimalRound(totalEn);
+            strTotalEn += "\n=" + totalEn;
+            return [totalEn, strEn + "\n" + strTotalEn];
+        }
+
+        function numericAttrImpurity(attr, name) {
+            var numAttr = [];
+            for (var i = 0; i < attr.length; i++) {
+                numAttr.push([attr[i], tar[i]]);
+            }
+            numAttr.sort((a, b) => a[0] - b[0]);
+            var str = "sorted: [";
+            numAttr.forEach(ele => str += ele[0] + ",");
+            str += "]\n";
+            var best = { threshold: 0, gini: 2 };
+            for (var i = 0; i < attr.length - 1; i++) {
+                var threshold = (numAttr[i][0] + numAttr[i + 1][0]) / 2;
+                str += "<B>threshold=" + threshold + "</b>\n";
+                var tempAttr1 = [];
+                numAttr.forEach(ele => {
+                    if (ele[0] <= threshold)
+                        tempAttr1.push(ele[1]);
+                });
+                var [en1, gini1, classErr1, strE1, strG1, strC1] = calcImpurity(tempAttr1, "<=" + threshold);
+                str += strE1 + "\n" + strG1 + "\n" + strC1 + "\n";
+                var tempAttr2 = [];
+                numAttr.forEach(ele => {
+                    if (ele[0] > threshold)
+                        tempAttr2.push(ele[1]);
+                });
+                var [en2, gini2, classErr2, strE2, strG2, strC2] = calcImpurity(tempAttr2, ">" + threshold);
+                str += strE2 + "\n" + strG2 + "\n" + strC2 + "\n";
+                var wGini = decimalRound((tempAttr1.length / attr.length) * gini1 + (tempAttr2.length / attr.length) * gini2);
+                var wEn = decimalRound((tempAttr1.length / attr.length) * en1 + (tempAttr2.length / attr.length) * en2);
+                var wClassErr = decimalRound((tempAttr1.length / attr.length) * classErr1 + (tempAttr2.length / attr.length) * classErr2);
+
+                str += `entropy(T,${name}<sub>thresh=${threshold}</sub>)
+                = (${tempAttr1.length}/${attr.length})*${en1}+(${tempAttr2.length}/${attr.length})*${en2}\t
+                = ${wEn}\n`;
+
+                str += `GINI(T,${name}<sub>thresh=${threshold}</sub>)
+                = (${tempAttr1.length}/${attr.length})*${gini1}+(${tempAttr2.length}/${attr.length})*${gini2}\t
+                = ${wGini}\n`;
+
+                str += `ClassificationError(T,${name}<sub>thresh=${threshold}</sub>)
+                = (${tempAttr1.length}/${attr.length})*${classErr1}+(${tempAttr2.length}/${attr.length})*${classErr2}\t
+                = ${wClassErr}\n`;
+
+                if (wGini < best.gini) {
+                    best.threshold = threshold;
+                    best.gini = wGini;
+                    best.classErr = wClassErr;
+                    best.en = wEn;
+                }
+            }
+            str += "<b>selecting best split " + best.threshold + "</b>"
+            return [best.en, best.gini, best.classErr, str];
+        }
+
+        function informationGain(entropy, tarEn) {
+            var maxIG = -1;
+            var maxIGAttr = "";
+            var str = "";
+            for (var attr in entropy) {
+                var IG = decimalRound(tarEn - entropy[attr]);
+                if (IG > maxIG) {
+                    maxIG = IG;
+                    maxIGAttr = attr;
+                }
+                str += "I(T," + attr + ") = H(t)-H(t," + attr + ")\n=" + tarEn + "-" + entropy[attr] + "\n=" + IG + "\n\n";
+            }
+            str += "split With attribute " + maxIGAttr;
+            return [maxIGAttr, str]
+        }
+
+        function text(str) {
+            var pre = document.createElement("pre");
+            pre.innerHTML = str;
+            return pre;
+        }
+
+        function counts(attr) {
+            var mp = new Map();
+            for (var i = 0; i < attr.length; i++)
+                if (!mp.has(attr[i]))
+                    mp.set(attr[i], 1);
+                else
+                    mp.set(attr[i], mp.get(attr[i]) + 1);
+            var str = "";
+            for (var [k, v] of mp) {
+                str += k + ":" + v + "\n";
+            }
+            return [mp, str];
+        }
+
+        function decimalRound(val) {
+            val *= 1e4;
+            val = Math.round(val);
+            val /= 1e4;
+            return val;
+        }
+
+        function argMax(array) {
+            return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r))[1];
+        }
+
+        function createTable(tableHeader, tableData) {
+            var table = document.createElement('table');
+            var tableBody = document.createElement('tbody');
+            var tableHead = document.createElement('thead');
+
+            var row = document.createElement('tr');
+            var cell = document.createElement('th');
+            row.appendChild(cell);
+            for (var header of tableHeader) {
+                cell = document.createElement('th');
+                cell.appendChild(document.createTextNode(header));
+                row.appendChild(cell);
+            }
+            tableHead.appendChild(row);
+
+            for (var i = 0; i < tableData[0].length; i++) {
+                row = document.createElement('tr');
+                cell = document.createElement('td');
+                cell.appendChild(document.createTextNode(i + 1));
+                row.appendChild(cell);
+                for (var j = 0; j < tableData.length; j++) {
+                    cell = document.createElement('td');
+                    cell.appendChild(document.createTextNode(tableData[j][i]));
+                    row.appendChild(cell);
+                }
+                tableBody.appendChild(row);
+            }
+
+            table.appendChild(tableHead);
+            table.appendChild(tableBody);
+            calc.appendChild(table);
+        }
+
+        function clearPre() {
+            calc.innerHTML = "";
+        }
+    </script>
+</head>

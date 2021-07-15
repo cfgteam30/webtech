@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <style>
+            body {
+                font-family: "Lato", sans-serif;
+            }
+            
+            .sidenav {
+                height: 100%;
+                width: 0;
+                position: fixed;
+                z-index: 1;
+                top: 0;
+                right: 0;
+                background-color: #111;
+                overflow-x: hidden;
+                transition: 0.5s;
+                padding-top: 60px;
+            }
+            
+            .sidenav a {
+                padding: 8px 8px 8px 32px;
+                text-decoration: none;
+                font-size: 25px;
+                color: #818181;
+                display: block;
+                transition: 0.3s;
+            }
+            
+            .sidenav a:hover {
+                color: #f1f1f1;
+            }
+            
+            .sidenav .closebtn {
+                position: absolute;
+                top: 0;
+                right: 25px;
+                font-size: 36px;
+                margin-left: 50px;
+            }
+            
+            @media screen and (max-height: 450px) {
+                .sidenav {padding-top: 15px;}
+                .sidenav a {font-size: 18px;}
+            }
+                </style>
+            <div id="mySidenav" class="sidenav" style="width: 250px;">
+              <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+              <a href="Count.html">Count Sort</a>
+              <a href="ActivitySelection.html">Activity Selection</a>
+              <a href="Radix.html">Radix Sort</a>
+              <a href="LCS.html">LCS</a>
+              <a href="Matrix.html">Matrix Chain Multiplication</a>
+            </div>
+        array<input size=20 value="0 9 6 1 6">
+        <button onclick="sort()" >sort</button>
+        <pre></pre>
+        <script>
+            function sort(){
+                var arr=document.querySelector("input").value.match(/[0-9]+/g).map(s=>parseInt(s));
+                var k=Math.max(...arr);
+                console.log(k);
+                var area=document.querySelector("pre");
+                area.innerHTML="\t"
+                for(var i=1;i<=arr.length;i++)
+                    area.innerHTML+=i+"\t"
+                area.innerHTML+="\n";
+                area.innerHTML+="<b>A:</b>\t"
+                for(var num of arr)
+                    area.innerHTML+="<b>"+num+"</b>"+"\t"
+                area.innerHTML+="\n\n";
+                var C=Array(k+1);
+                C.fill(0);
+                area.innerHTML+="\t"
+                for(var i=0;i<=k;i++)
+                    area.innerHTML+=i+"\t"
+                area.innerHTML+="\ninitialized to 0\n";
+                area.innerHTML+="<b>C:</b>\t"
+                for(var num of C)
+                    area.innerHTML+="<b>"+num+"</b>"+"\t"
+                area.innerHTML+="\n\ncount frequencies\n";
+                for(var num of arr)
+                    C[num]++;
+                area.innerHTML+="<b>C:</b>\t"
+                for(var num of C)
+                    area.innerHTML+="<b>"+num+"</b>"+"\t"
+                area.innerHTML+="\n\ncumulative count\n";
+                area.innerHTML+="<b>"+"C:\t"+C[0]+"</b>"+"\t"
+                for(var i=1;i<=k;i++){
+                    C[i]=C[i]+C[i-1];
+                    area.innerHTML+="<b>"+C[i]+"</b>"+"\t"
+                }
+                area.innerHTML+="\n\n";
+                var B=Array(arr.length);
+                for(var num of arr.reverse()){
+                    B[C[num]-1]=num;
+                    C[num]--;
+                }
+                area.innerHTML+="<b>B:</b>\t"
+                for(var num of B)
+                    area.innerHTML+="<b>"+num+"</b>"+"\t"
+                area.innerHTML+="\n\n";
+            }   
+        </script>
+    </body>
+</html>
