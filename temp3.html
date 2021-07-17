@@ -13,10 +13,6 @@ p {
 }
 img{
     position: absolute;
-    width: 30%;
-    height: 30%;
-    left: 35%;
-    top: 30%;
     z-index: -1;
 }
 body{
@@ -61,9 +57,7 @@ body{
     SW<input id="SW"  type="radio" name="grp1" onclick="myclick(event)"/><br>
     SE<input id="SE"  type="radio" name="grp1" onclick="myclick(event)"/><br>
     <script>
-        console.log("832$2".match(/2$2/g))
         var p=document.querySelector("p");
-        var pstyle=window.getComputedStyle(p);
         var img=document.querySelector("img");
         img.style.bottom=0;
         img.style.right=0;
@@ -71,17 +65,24 @@ body{
             if(event.target.id=="NW"){
                 img.style.top=0;
                 img.style.left=0;
+                img.style.bottom="auto";
+                img.style.right="auto";
             }else if(event.target.id=="NE"){
                 img.style.top=0;
                 img.style.right=0;
+                img.style.left="auto";
+                img.style.bottom="auto";
             }else if(event.target.id=="SW"){
                 img.style.bottom=0;
                 img.style.left=0;
+                img.style.top="auto";
+                img.style.right="auto";
             }else if(event.target.id=="SE"){
                 img.style.bottom=0;
                 img.style.right=0;
+                img.style.left="auto";
+                img.style.top="auto";
             }
-            console.log([img.style.top,img.style.left,img.style.right,img.style.bottom].join(","));
         }
     </script>
 </body>

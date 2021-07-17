@@ -6,8 +6,10 @@
     function func1(){
         l.style.left=front?"50%":"10%";
         front=!front;
-        t=setTimeout(func1,1000);
     }
-    var t=setTimeout(func1,1000);
+    var t=setInterval(func1,300);
+    
 </script>
-
+<button onclick="clearInterval(t);">
+    click
+</button>
